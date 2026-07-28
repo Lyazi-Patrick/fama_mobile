@@ -1,0 +1,44 @@
+name: fama_mobile
+description: Mobile app for the FAMA agricultural platform (matches the FAMA Laravel/Livewire website).
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # Networking
+  dio: ^5.4.0
+
+  # State management (Provider - simple, explicit, easy to reason about)
+  provider: ^6.1.1
+
+  # Secure token storage
+  flutter_secure_storage: ^9.0.0
+
+  # Maps (mirrors ProviderMapDiscovery.php)
+  google_maps_flutter: ^2.5.3
+  geolocator: ^11.0.0
+
+  # Images
+  image_picker: ^1.0.7
+  cached_network_image: ^3.3.1
+
+  # Misc utilities
+  intl: ^0.19.0
+  flutter_dotenv: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+    - assets/images/

@@ -1,0 +1,33 @@
+class AppUser {
+  final int id;
+  final String name;
+  final String email;
+  final double? latitude;
+  final double? longitude;
+  final String? extensionService;
+  final List<String> roles;
+
+  AppUser({
+    required this.id,
+    required this.name,
+    required this.email,
+    this.latitude,
+    this.longitude,
+    this.extensionService,
+    this.roles = const [],
+  });
+
+  factory AppUser.fromJson(Map<String, dynamic> json) {
+    return AppUser(
+      id: json['id'],
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      extensionService: json['extension_service'],
+      roles: (json['roles'] as List<dynamic>? ?? [])
+          .map((r) => r['name'].toString())
+          .toList(),
+    );
+  }
+}
