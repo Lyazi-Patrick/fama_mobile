@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'core/theme/fama_theme.dart';
 import 'features/auth/auth_provider.dart';
-import 'features/auth/login_screen.dart';
+import 'features/auth/landing_screen.dart';
 import 'features/home/home_shell.dart';
 
 Future<void> main() async {
@@ -21,10 +22,7 @@ class FamaApp extends StatelessWidget {
       child: MaterialApp(
         title: 'FAMA',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFF2E7D32), // matches an agricultural green
-          useMaterial3: true,
-        ),
+        theme: FamaTheme.light,
         home: const AuthGate(),
       ),
     );
@@ -45,7 +43,7 @@ class AuthGate extends StatelessWidget {
       case AuthStatus.authenticated:
         return const HomeShell();
       case AuthStatus.unauthenticated:
-        return const LoginScreen();
+        return const LandingScreen();
     }
   }
 }

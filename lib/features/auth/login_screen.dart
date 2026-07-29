@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/theme/fama_theme.dart';
 import 'auth_provider.dart';
 import 'register_screen.dart';
 
@@ -14,43 +15,66 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Form(
             key: _formKey,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('FAMA', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                const Text('Connecting farmers with agricultural services'),
+                const SizedBox(height: 24),
+                Text('Welcome back', style: textTheme.headlineLarge),
+                const SizedBox(height: 8),
+                Text(
+                  'Log in to continue to FAMA',
+                  style: textTheme.bodyMedium?.copyWith(color: FamaColors.onBackground.withOpacity(0.6)),
+                ),
                 const SizedBox(height: 32),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.mail_outline)),
                   validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                  ),
                   validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
                 ),
                 if (auth.errorMessage != null) ...[
-                  const SizedBox(height: 12),
-                  Text(auth.errorMessage!, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: FamaColors.error.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: FamaColors.error.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      auth.errorMessage!,
+                      style: textTheme.bodyMedium?.copyWith(color: FamaColors.error),
+                    ),
+                  ),
                 ],
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
                 FilledButton(
                   onPressed: auth.isLoading
                       ? null
@@ -60,21 +84,83 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                   child: auth.isLoading
                       ? const SizedBox(
-                          height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          height: 20, width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Text('Log in'),
                 ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                const SizedBox(height: 20),
+                Row(children: [
+                  const Expanded(child: Divider(color: FamaColors.outlineVariant)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('or', style: textTheme.bodyMedium?.copyWith(color: FamaColors.outline)),
                   ),
-                  child: const Text("Don't have an account? Sign up"),
+                  const Expanded(child: Divider(color: FamaColors.outlineVariant)),
+                ]),
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: auth.isLoading ? null : () => _continueWithGoogle(context),
+                  icon: const _GoogleIcon(),
+                  label: const Text('Continue with Google'),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: FamaColors.outlineVariant, width: 1),
+                    foregroundColor: FamaColors.onBackground,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Don't have an account? ", style: textTheme.bodyMedium),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                      ),
+                      child: Text(
+                        'Sign up',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: FamaColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  void _continueWithGoogle(BuildContext context) {
+    // Google Sign-In requires the `google_sign_in` package + Firebase (or a
+    // Google Cloud OAuth client) project setup, plus a matching Laravel
+    // Socialite endpoint on the API side -- that's a separate wiring task.
+    // This button is placed and styled now so the flow is ready to plug in.
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Google Sign-In coming soon')),
+    );
+  }
+}
+
+/// Simple "G" mark so the button doesn't need a bundled logo asset yet.
+/// Swap for the official Google "G" icon asset when you wire this up for real.
+class _GoogleIcon extends StatelessWidget {
+  const _GoogleIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 20,
+      height: 20,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: FamaColors.outlineVariant),
+      ),
+      child: const Text('G', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
     );
   }
 }
