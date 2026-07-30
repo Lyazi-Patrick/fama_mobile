@@ -1,6 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../core/network/asset_url.dart';
+import '../../core/theme/fama_theme.dart';
 import '../../models/marketplace.dart';
 import '../../services/marketplace_service.dart';
+import 'ad_carousel.dart';
 
 /// This is the fully-wired reference screen: search, load, error, and empty
 /// states all handled. Copy this pattern for the other list screens
@@ -33,6 +37,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       appBar: AppBar(title: const Text('Marketplace')),
       body: Column(
         children: [
+          const AdCarousel(),
           Padding(
             padding: const EdgeInsets.all(12),
             child: TextField(
@@ -61,13 +66,49 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   return const Center(child: Text('No products found.'));
                 }
                 return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   itemCount: products.length,
                   itemBuilder: (context, index) {
                     final product = products[index];
-                    return ListTile(
-                      title: Text(product.name),
-                      subtitle: Text(product.description ?? ''),
-                      trailing: Text('UGX ${product.price.toStringAsFixed(0)}'),
+                    final imageUrl = storageUrl(product.imagePath);
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      elevation: 0,
+                      color: FamaColors.surfaceContainerLow,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(8),
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: SizedBox(
+                            width: 56,
+                            height: 56,
+                            child: imageUrl != null
+                                ? CachedNetworkImage(
+                                    imageUrl: imageUrl,
+                                    fit: BoxFit.cover,
+                                    errorWidget: (_, __, ___) => Container(
+                                      color: FamaColors.surfaceContainer,
+                                      child: const Icon(Icons.image_not_supported_outlined, size: 20),
+                                    ),
+                                  )
+                                : Container(
+                                    color: FamaColors.surfaceContainer,
+                                    child: const Icon(Icons.eco_outlined, size: 20, color: FamaColors.primary),
+                                  ),
+                          ),
+                        ),
+                        title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: Text(
+                          product.description ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: Text(
+                          'UGX ${product.price.toStringAsFixed(0)}',
+                          style: const TextStyle(fontWeight: FontWeight.w700, color: FamaColors.primary),
+                        ),
+                      ),
                     );
                   },
                 );

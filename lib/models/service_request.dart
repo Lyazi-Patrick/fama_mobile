@@ -1,3 +1,5 @@
+import '../core/utils/parsing.dart';
+
 class ServiceRequestItem {
   final int id;
   final int farmerId;
@@ -16,9 +18,9 @@ class ServiceRequestItem {
   });
 
   factory ServiceRequestItem.fromJson(Map<String, dynamic> json) => ServiceRequestItem(
-        id: json['id'],
-        farmerId: json['farmer_id'],
-        extensionWorkerId: json['extension_worker_id'],
+        id: asInt(json['id']),
+        farmerId: asInt(json['farmer_id']),
+        extensionWorkerId: asInt(json['extension_worker_id']),
         description: json['description'] ?? '',
         status: json['status'] ?? 'pending',
         responseMessage: json['response_message'],
@@ -41,8 +43,8 @@ class WorkerProfileItem {
   });
 
   factory WorkerProfileItem.fromJson(Map<String, dynamic> json) => WorkerProfileItem(
-        id: json['id'],
-        userId: json['user_id'],
+        id: asInt(json['id']),
+        userId: asInt(json['user_id']),
         bio: json['bio'],
         whatsappNumber: json['whatsapp_number'],
         status: json['status'] ?? 'pending',

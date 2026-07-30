@@ -1,3 +1,5 @@
+import '../core/utils/parsing.dart';
+
 class Outlet {
   final int id;
   final String name;
@@ -16,11 +18,11 @@ class Outlet {
   });
 
   factory Outlet.fromJson(Map<String, dynamic> json) => Outlet(
-        id: json['id'],
+        id: asInt(json['id']),
         name: json['name'] ?? '',
         description: json['description'],
-        latitude: (json['latitude'] as num).toDouble(),
-        longitude: (json['longitude'] as num).toDouble(),
+        latitude: asDouble(json['latitude']),
+        longitude: asDouble(json['longitude']),
         contact: json['contact'],
       );
 }
@@ -45,11 +47,11 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
-        id: json['id'],
-        outletId: json['outlet_id'],
+        id: asInt(json['id']),
+        outletId: asInt(json['outlet_id']),
         name: json['name'] ?? '',
         description: json['description'],
-        price: (json['price'] as num).toDouble(),
+        price: asDouble(json['price']),
         imagePath: json['image_path'],
         status: json['status'] ?? 'pending',
       );

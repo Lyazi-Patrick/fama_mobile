@@ -1,3 +1,5 @@
+import '../core/utils/parsing.dart';
+
 class AppUser {
   final int id;
   final String name;
@@ -19,11 +21,11 @@ class AppUser {
 
   factory AppUser.fromJson(Map<String, dynamic> json) {
     return AppUser(
-      id: json['id'],
+      id: asInt(json['id']),
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
+      latitude: asDoubleOrNull(json['latitude']),
+      longitude: asDoubleOrNull(json['longitude']),
       extensionService: json['extension_service'],
       roles: (json['roles'] as List<dynamic>? ?? [])
           .map((r) => r['name'].toString())
