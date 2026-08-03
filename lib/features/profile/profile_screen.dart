@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/fama_theme.dart';
 import '../auth/auth_provider.dart';
+import '../my_outlets/my_outlets_screen.dart';
+import '../my_services/my_services_screen.dart';
 import '../role_upgrade/role_upgrade_screen.dart';
 import '../subscriptions/subscriptions_screen.dart';
 
@@ -60,14 +62,19 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 28),
           Text('Account', style: textTheme.headlineMedium),
           const SizedBox(height: 8),
-          _ProfileTile(
-            icon: Icons.trending_up,
-            title: 'Upgrade your role',
-            subtitle: 'Become a dealer or extension worker',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const RoleUpgradeScreen()),
+          if (!(user?.isDealer ?? false) || !(user?.isExtensionWorker ?? false))
+            _ProfileTile(
+              icon: Icons.trending_up,
+              title: 'Upgrade your role',
+              subtitle: (user?.isDealer ?? false)
+                  ? 'Become an extension worker'
+                  : (user?.isExtensionWorker ?? false)
+                      ? 'Become a dealer'
+                      : 'Become a dealer or extension worker',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const RoleUpgradeScreen()),
+              ),
             ),
-          ),
           _ProfileTile(
             icon: Icons.workspace_premium_outlined,
             title: 'Subscription plans',
@@ -76,17 +83,28 @@ class ProfileScreen extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const SubscriptionsScreen()),
             ),
           ),
-          _ProfileTile(
-            icon: Icons.storefront_outlined,
-            title: 'My outlets & products',
-            subtitle: 'Manage what you sell',
-            onTap: () {
-              // TODO: wire to a "My Outlets" screen (GET /api/my-outlets).
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('My Outlets screen coming soon')),
-              );
-            },
-          ),
+          // Dealer-only: farmers who haven't upgraded have nothing to
+          // manage here, so this tile simply doesn't appear for them.
+          if (user?.isDealer ?? false)
+            _ProfileTile(
+              icon: Icons.storefront_outlined,
+              title: 'My outlets & products',
+              subtitle: 'Manage what you sell',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const MyOutletsScreen()),
+              ),
+            ),
+          // Extension-worker-only: matches WorkerServiceForm.php / the
+          // "My Worker Profile" edit endpoint, neither useful to a farmer.
+          if (user?.isExtensionWorker ?? false)
+            _ProfileTile(
+              icon: Icons.agriculture_outlined,
+              title: 'My services & profile',
+              subtitle: 'Manage the services you offer',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const MyServicesScreen()),
+              ),
+            ),
           _ProfileTile(
             icon: Icons.campaign_outlined,
             title: 'Submit an ad',

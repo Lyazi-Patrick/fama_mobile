@@ -25,7 +25,7 @@ class _HomeShellState extends State<HomeShell> {
     ServiceRequestsScreen(),
     ProfileScreen(),
   ];
-
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,8 +36,8 @@ class _HomeShellState extends State<HomeShell> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.storefront), label: 'Market'),
           NavigationDestination(icon: Icon(Icons.agriculture), label: 'Services'),
-          NavigationDestination(icon: Icon(Icons.map), label: 'Providers'),
-          NavigationDestination(icon: Icon(Icons.assignment), label: 'Requests'),
+          NavigationDestination(icon: Icon(Icons.travel_explore_outlined), selectedIcon: Icon(Icons.travel_explore), label: 'Nearby'),
+          NavigationDestination(icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble), label: 'Requests'),
           NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
