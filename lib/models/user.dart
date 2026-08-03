@@ -19,6 +19,10 @@ class AppUser {
     this.roles = const [],
   });
 
+  bool get isDealer => roles.contains('dealer');
+  bool get isExtensionWorker => roles.contains('extension_worker');
+  bool get isFarmer => roles.contains('farmer') || roles.isEmpty;
+
   factory AppUser.fromJson(Map<String, dynamic> json) {
     return AppUser(
       id: asInt(json['id']),

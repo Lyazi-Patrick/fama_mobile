@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/fama_theme.dart';
 import 'auth_provider.dart';
+import 'google_signin_button.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,8 +15,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +68,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (v) => (v == null || v.length < 8) ? 'At least 8 characters' : null,
                 ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirmPassword,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    ),
+                  ),
+                  validator: (v) => (v != _passwordController.text) ? 'Passwords do not match' : null,
+                ),
                 if (auth.errorMessage != null) ...[
                   const SizedBox(height: 16),
                   Container(
@@ -91,7 +108,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             email: _emailController.text.trim(),
                             password: _passwordController.text,
                           );
-                          if (ok && mounted) Navigator.of(context).pop();
+                          if (ok && context.mounted) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          }
                         },
                   child: auth.isLoading
                       ? const SizedBox(
@@ -109,18 +128,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const Expanded(child: Divider(color: FamaColors.outlineVariant)),
                 ]),
                 const SizedBox(height: 20),
-                OutlinedButton.icon(
-                  onPressed: auth.isLoading
-                      ? null
-                      : () => ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Google Sign-In coming soon')),
-                          ),
-                  icon: const _GoogleIcon(),
-                  label: const Text('Continue with Google'),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: FamaColors.outlineVariant, width: 1),
-                    foregroundColor: FamaColors.onBackground,
-                  ),
+                GoogleSignInButton(
+                  enabled: !auth.isLoading,
+                  onPressed: () async {
+                    final ok = await auth.signInWithGoogle();
+                    if (ok && context.mounted) {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    }
+                  },
                 ),
                 const SizedBox(height: 24),
               ],
@@ -128,24 +143,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _GoogleIcon extends StatelessWidget {
-  const _GoogleIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 20,
-      height: 20,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: FamaColors.outlineVariant),
-      ),
-      child: const Text('G', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
     );
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/fama_theme.dart';
 import 'auth_provider.dart';
+import 'forgot_password_screen.dart';
+import 'google_signin_button.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -59,6 +61,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
                 ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                    ),
+                    child: const Text('Forgot password?'),
+                  ),
+                ),
                 if (auth.errorMessage != null) ...[
                   const SizedBox(height: 16),
                   Container(
@@ -80,7 +91,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? null
                       : () async {
                           if (!_formKey.currentState!.validate()) return;
-                          await auth.login(_emailController.text.trim(), _passwordController.text);
+                          final ok = await auth.login(_emailController.text.trim(), _passwordController.text);
+                          if (ok && context.mounted) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          }
                         },
                   child: auth.isLoading
                       ? const SizedBox(
@@ -98,14 +112,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Expanded(child: Divider(color: FamaColors.outlineVariant)),
                 ]),
                 const SizedBox(height: 20),
-                OutlinedButton.icon(
-                  onPressed: auth.isLoading ? null : () => _continueWithGoogle(context),
-                  icon: const _GoogleIcon(),
-                  label: const Text('Continue with Google'),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: FamaColors.outlineVariant, width: 1),
-                    foregroundColor: FamaColors.onBackground,
-                  ),
+                GoogleSignInButton(
+                  enabled: !auth.isLoading,
+                  onPressed: () async {
+                    final ok = await auth.signInWithGoogle();
+                    if (ok && context.mounted) {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    }
+                  },
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -134,33 +148,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _continueWithGoogle(BuildContext context) {
-    // Google Sign-In requires the `google_sign_in` package + Firebase (or a
-    // Google Cloud OAuth client) project setup, plus a matching Laravel
-    // Socialite endpoint on the API side -- that's a separate wiring task.
-    // This button is placed and styled now so the flow is ready to plug in.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google Sign-In coming soon')),
-    );
-  }
-}
-
-/// Simple "G" mark so the button doesn't need a bundled logo asset yet.
-/// Swap for the official Google "G" icon asset when you wire this up for real.
-class _GoogleIcon extends StatelessWidget {
-  const _GoogleIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 20,
-      height: 20,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: FamaColors.outlineVariant),
-      ),
-      child: const Text('G', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-    );
-  }
 }

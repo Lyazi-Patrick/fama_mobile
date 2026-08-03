@@ -1,3 +1,5 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../core/network/api_client.dart';
 import '../core/storage/secure_storage.dart';
 import '../models/user.dart';
@@ -39,6 +41,42 @@ class AuthService {
     } finally {
       await _storage.clearToken();
     }
+  }
+
+  /// Launches the native Google account picker, gets an ID token, and
+  /// exchanges it with the Laravel backend for a FAMA session token.
+  /// Requires GOOGLE_WEB_CLIENT_ID in .env (see README.md for the full
+  /// Google Cloud Console setup this depends on).
+  Future<AppUser> signInWithGoogle() async {
+    final serverClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
+    if (serverClientId == null || serverClientId.isEmpty) {
+      throw StateError(
+        'GOOGLE_WEB_CLIENT_ID is not set in .env -- Google Sign-In has not '
+        'been configured yet. See fama_mobile/README.md.',
+      );
+    }
+
+    final googleSignIn = GoogleSignIn(serverClientId: serverClientId);
+    final account = await googleSignIn.signIn();
+    if (account == null) {
+      // User cancelled the picker -- not an error, just no-op.
+      throw StateError('Sign-in cancelled');
+    }
+
+    final googleAuth = await account.authentication;
+    final idToken = googleAuth.idToken;
+    if (idToken == null) {
+      throw StateError('Google did not return an ID token.');
+    }
+
+    final response = await _dio.post('/auth/google', data: {'id_token': idToken});
+    await _storage.saveToken(response.data['token']);
+    return AppUser.fromJson(response.data['user']);
+  }
+
+  Future<String> forgotPassword(String email) async {
+    final response = await _dio.post('/forgot-password', data: {'email': email});
+    return response.data['message'] as String? ?? 'If that email is registered, a reset link has been sent.';
   }
 
   Future<AppUser?> currentUser() async {

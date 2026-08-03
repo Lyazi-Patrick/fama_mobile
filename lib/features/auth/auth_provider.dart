@@ -93,6 +93,37 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> signInWithGoogle() async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      user = await _authService.signInWithGoogle();
+      status = AuthStatus.authenticated;
+      return true;
+    } catch (e) {
+      if (e is StateError && e.message == 'Sign-in cancelled') {
+        errorMessage = null; // not a real error, don't show a scary banner
+      } else if (e is StateError) {
+        errorMessage = e.message;
+      } else {
+        errorMessage = _describeError(e);
+      }
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> forgotPassword(String email) async {
+    try {
+      return await _authService.forgotPassword(email);
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<void> logout() async {
     await _authService.logout();
     user = null;
