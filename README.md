@@ -30,10 +30,72 @@ Android emulator reaches your machine's `localhost:8000` where
 instead (e.g. `http://192.168.1.20:8000/api`), and on iOS simulator you can
 use `http://127.0.0.1:8000/api` directly.
 
-Google Maps (`google_maps_flutter`, used in `ProvidersScreen`) needs an API
-key added to `android/app/src/main/AndroidManifest.xml` and
+Google Maps (`google_maps_flutter`, used in the Providers map view) needs an
+API key added to `android/app/src/main/AndroidManifest.xml` and
 `ios/Runner/AppDelegate.swift` — standard Flutter Google Maps setup, not
 FAMA-specific.
+
+### Location permissions (for distance-to-provider and map centering)
+
+Android — add to `android/app/src/main/AndroidManifest.xml`, inside `<manifest>`:
+
+```xml
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+```
+
+iOS — add to `ios/Runner/Info.plist`:
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>FAMA uses your location to show nearby providers and outlets.</string>
+```
+
+Without these, the Providers screen just skips showing distance — it
+won't crash, but "X km away" won't appear.
+
+### Google Sign-In setup
+
+This is real, wired-up code — not a placeholder — but it needs credentials
+only you can create:
+
+1. In [Google Cloud Console](https://console.cloud.google.com), create an
+   OAuth 2.0 **Web application** client ID (this is the one Flutter's
+   `google_sign_in` calls `serverClientId` — it's the "audience" every
+   platform's token gets issued against, regardless of whether sign-in
+   happened on Android or iOS).
+2. Also create an **Android** OAuth client ID, tied to your app's package
+   name and its SHA-1 signing fingerprint (get it with
+   `cd android && ./gradlew signingReport`).
+3. Put the **Web** client ID in `fama_mobile/.env` as `GOOGLE_WEB_CLIENT_ID`.
+4. Put the same Web client ID in your Laravel `.env` as `GOOGLE_CLIENT_ID`
+   (see `fama_api_additions/SETUP.md` step 8).
+
+Until you do this, tapping "Continue with Google" shows a clear error
+telling you it isn't configured yet — it won't crash or silently fail.
+
+## Design system
+
+Marketplace, Services, and Providers screens now follow the Stitch
+`fama_agricultural_design_system` export exactly (colors, type scale,
+button/input shapes — see `lib/core/theme/fama_theme.dart`). A few
+callouts on how real data maps onto those designs:
+
+- **Marketplace** shows products only (never outlets or services mixed
+  in), with category filter chips derived from whatever tags are actually
+  attached to your real products — not a hardcoded Seeds/Tools/Fertilizer
+  list, since your database's actual tags may differ.
+- **Services** shows only `status: approved` services from real workers,
+  rendered through Stitch's icon-row treatment (icon picked by keyword
+  match against the service's name/tags, not a manual per-service lookup
+  table).
+- **Providers** distances are computed for real from device GPS + each
+  provider's stored location — no fabricated ratings/reviews, since FAMA
+  doesn't have a review system yet. If you add one later, the provider
+  card is ready for a rating row.
+- The promoted-ad banner (`featured_banner.dart`) is now a single
+  Stitch-style banner shared by Marketplace and Services, instead of the
+  earlier tall auto-scrolling carousel.
 
 ## Architecture
 
